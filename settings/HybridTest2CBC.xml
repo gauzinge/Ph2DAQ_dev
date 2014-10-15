@@ -4,7 +4,9 @@
 
     <Shelve Id="0" >
         <BeBoard Id="0" connectionId="board0" boardType="GLIB">
-
+            
+           <!--  <Register name="FE_expected"> 1 </Register>
+            <Register name="CBC_expected"> 3 </Register> -->
             <Register name="COMMISSIONNING_MODE_CBC_TEST_PULSE_VALID"> 1 </Register>
             <Register name="COMMISSIONNING_MODE_DELAY_AFTER_FAST_RESET"> 50 </Register>
             <Register name="COMMISSIONNING_MODE_DELAY_AFTER_L1A"> 400 </Register>
@@ -14,7 +16,7 @@
             <Register name="cbc_stubdata_latency_adjust_fe2"> 1 </Register>
             <Register name="user_wb_ttc_fmc_regs.pc_commands.ACQ_MODE"> 1 </Register>
             <Register name="user_wb_ttc_fmc_regs.pc_commands.CBC_DATA_GENE"> 1 </Register>
-            <Register name="user_wb_ttc_fmc_regs.pc_commands.CBC_DATA_PACKET_NUMBER"> 10 </Register>
+            <Register name="user_wb_ttc_fmc_regs.pc_commands.CBC_DATA_PACKET_NUMBER"> 20 </Register>
             <Register name="user_wb_ttc_fmc_regs.pc_commands.INT_TRIGGER_FREQ"> 8 </Register>
             <Register name="user_wb_ttc_fmc_regs.pc_commands.TRIGGER_SEL"> 0 </Register>
             <Register name="user_wb_ttc_fmc_regs.pc_commands2.clock_shift"> 0 </Register>
@@ -23,22 +25,22 @@
             <Register name="user_wb_ttc_fmc_regs.pc_commands2.polarity_tlu"> 0 </Register>
 
             <Module FeId="0" FMCId="0" ModuleId="0" Status="1">
-              <!--   <Global_CBC_Register name="VCth"> 0x78 </Global_CBC_Register>
-                <Global_CBC_Register name="TriggerLatency"> 0x0C </Global_CBC_Register> -->
-<!--                 <CBC_Files path="./settings/"/>
- -->
-                <CBC Id="0" configfile="./settings/Cbc_default_hole.txt"/>
-                <CBC Id="1" configfile="./settings/Cbc_default_hole.txt"/>
+                <Global_CBC_Register name="VCth"> 0x70 </Global_CBC_Register>
+                <!--Global_CBC_Register name="TriggerLatency"> 0x0C </Global_CBC_Register-->
+
+                <CBC_Files path="./CalibrationResults/Hyb15/"/>
+
+                <CBC Id="0" configfile="FE0CBC0.txt"/>
+                <CBC Id="1" configfile="FE0CBC1.txt"/>
             </Module>
         </BeBoard>
     </Shelve>
 </HwDescription>
 
 <Settings>
-    <Setting name="TargetVcth"> 0x78 </Setting>
-    <Setting name="RunNumber"> 1 </Setting>
-    <Setting name="Nevents"> 10 </Setting>
-    <Setting name="EnableTestPulse"> 0 </Setting>
-    <Setting name="TestPulsePotentiometer"> 0xF1 </Setting>
+    <Setting name="Nevents"> 100 </Setting>
     <Setting name="HoleMode"> 1 </Setting>
+    <Setting name="TestRegs"> 0 </Setting>
+    <Setting name="ScanThreshold"> 0 </Setting>
+    <Setting name="Threshold_NSigmas"> 4 </Setting>
 </Settings>

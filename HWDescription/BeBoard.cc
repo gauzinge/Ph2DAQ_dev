@@ -22,10 +22,7 @@ namespace Ph2_HwDescription
 
 	BeBoard::BeBoard() :
 		fShelveId( 0 ),
-		fBeId( 0 )
-	{
-		loadConfigFile( DEFAULT_GLIB_FILE );
-	}
+		fBeId( 0 ) {}
 
 	BeBoard::BeBoard( uint8_t pShelveId, uint8_t pBeId ) :
 		fShelveId( pShelveId ),

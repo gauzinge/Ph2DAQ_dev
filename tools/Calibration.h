@@ -42,7 +42,6 @@ class Calibration : public SystemController
 {
 
   public:
-
 	// Default C'tor
 	Calibration();
 
@@ -54,21 +53,15 @@ class Calibration : public SystemController
 	void VplusScan();
 	void OffsetScan();
 
-	void InitResultFile();
-	void CreateResultDirectory( std::string pDirname );
 	void SaveResults();
 
   private:
-
-	std::string fDirName;
-	TFile* fResultFile;
 	TestGroupMap fTestGroupMap;
 	TestGroupGraphMap fTestGroupGraphMap;
 	std::vector<uint8_t> fVplusValues;
 	std::map<Cbc*, TCanvas*> fCbcCanvasMap;
 
   private:
-
 	void ConstructTestGroup( uint8_t pShelveId, uint8_t pBeId, uint8_t pFeId, uint8_t pCbcId );
 
 	void FitVplusVcth( BeBoard& pBoard, uint8_t pTargetVcth,  bool pDoDraw );
@@ -81,7 +74,6 @@ class Calibration : public SystemController
 	uint32_t SetOffsetTargetBitTestGroup( BeBoard& pBoard, uint8_t pGroupId, bool pHoleMode, uint8_t pTargetBit, uint8_t pTargetVcth );
 	void processSCurvesOffset( BeBoard& pBoard, uint8_t pGroupId, uint32_t pEventsperVcth, uint8_t pTargetVcth, uint8_t pTargetBit, TString pParameter, bool pHoleMode, bool pDoDraw );
 	void UpdateCbcObject( BeBoard& pBoard, uint8_t pGroupId );
-	const std::string currentDateTime();
 };
 
 #endif

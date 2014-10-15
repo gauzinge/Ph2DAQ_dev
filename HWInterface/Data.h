@@ -17,14 +17,7 @@
 #include <istream>
 #include "Event.h"
 #include "../HWDescription/BeBoard.h"
-
-
-#define SWAP_4(x) ( ((x) << 24) | \
-					(((x) << 8) & 0x00ff0000) | \
-					(((x) >> 8) & 0x0000ff00) | \
-					((x) >> 24) )
-
-#define SWAP_2(x) ( (((x) & 0xff) << 8) | ((unsigned short)(x) >> 8) )
+#include "../HWDescription/Definition.h"
 
 
 using namespace Ph2_HwDescription;
@@ -33,16 +26,19 @@ namespace Ph2_HwInterface
 
 	/*!
 	 * \class Data
-	 * \brief Data container to manipulate data flux from the Cbc
+	 * \brief Data buffer class for CBC data
 	 */
 	class Data
 	{
 	  private:
-		char* fBuf;         /*! Data buffer <*/
-		uint32_t fBufSize;         /*! Size of Data buffer <*/
-		uint32_t fNevents;         /*! Number of Events<*/
-		Event fEvent;         /*! Events container <*/
-		uint32_t fCurrentEvent;         /*! Current Event in use <*/
+		char* fBuf;              /*! Data buffer <*/
+		uint32_t fBufSize;           /*! Size of Data buffer <*/
+		uint32_t fNevents;                 /*! Number of Events<*/
+		Event* fEvent;                /*! Ptr. to Events container < */
+		uint32_t fCurrentEvent;         /*! Current EventNumber in use <*/
+		uint32_t fNCbc  ;       /*! Number of CBCs in the setup <*/
+		uint32_t fEventSize  ;       /*! Size of 1 Event <*/
+
 
 	  private:
 		/*!
@@ -58,14 +54,8 @@ namespace Ph2_HwInterface
 		 * \brief Constructor of the Data class
 		 * \param pNbCbc
 		 */
-		Data( uint32_t pNbCbc ) : fBuf( 0 ), fCurrentEvent( 0 ), fEvent( pNbCbc ) {
+		Data( ) : fBuf( NULL ), fCurrentEvent( 0 ), fEvent( NULL ), fEventSize( 0 ) {
 		}
-		/*!
-		 * \brief Constructor of the Data class
-		 * \param pBoard : Board to work with
-		 * \param pNbCbc
-		 */
-		Data( BeBoard& pBoard, uint32_t pNbCbc );
 		/*!
 		 * \brief Copy Constructor of the Data class
 		 */
@@ -76,23 +66,12 @@ namespace Ph2_HwInterface
 		~Data() {
 			if ( fBuf ) free( fBuf );
 		}
-
-		/*!
-		 * \brief Initialise the data structure
-		 * \param pNevents : number of Events
-		 */
-		void Initialise( uint32_t pNevents );
-		/*!
-		 * \brief Initialise the data structure
-		 * \param pNevents : number of Events
-		 * \param pBoard : Board to work with
-		 */
-		void Initialise( uint32_t pNevents, BeBoard& pBoard );
 		/*!
 		 * \brief Set the data in the data map
 		 * \param *pData : Data from the Cbc
+		 * \param pNevents : The number of events in this acquisiton
 		 */
-		void Set( void* pData );
+		void Set( std::vector<uint32_t>* pData, uint32_t pNevents );
 		/*!
 		 * \brief Reset the data structure
 		 */
@@ -110,9 +89,10 @@ namespace Ph2_HwInterface
 		const char* GetBuffer( uint32_t& pBufSize ) const;
 		/*!
 		 * \brief Get the next Event
+		 * \param pBoard: pointer to BeBoard
 		 * \return Next Event
 		 */
-		const Event* GetNextEvent();
+		const Event* GetNextEvent( BeBoard* pBoard );
 
 	};
 

@@ -19,7 +19,7 @@
 #include <stdint.h>
 #include "BeBoardFWInterface.h"
 #include "../HWDescription/Module.h"
-
+#include "../HWInterface/Visitor.h"
 
 using namespace Ph2_HwDescription;
 
@@ -98,7 +98,7 @@ namespace Ph2_HwInterface
 		 * \brief Get next event from data buffer
 		 * \return Next event
 		 */
-		const Event* GetNextEvent();
+		const Event* GetNextEvent( BeBoard* pBoard );
 		/*!
 		* \brief Get the data buffer
 		* \param pBufSize : recovers the data buffer size

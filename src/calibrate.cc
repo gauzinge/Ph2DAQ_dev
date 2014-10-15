@@ -14,7 +14,7 @@ using namespace Ph2_System;
 
 void syntax( int argc )
 {
-	if ( argc > 2 ) std::cerr << RED << "ERROR: Syntax: calibrationtest HWDescriptionFile" << std::endl;
+	if ( argc > 3 ) std::cerr << RED << "ERROR: Syntax: calibrationtest HWDescriptionFile DestinationPath" << std::endl;
 	else return;
 }
 
@@ -26,15 +26,19 @@ int main( int argc, char* argv[] )
 	if ( argc > 1 && !strcmp( argv[1], "8CBC" ) ) cHWFile = "settings/HWDescription_8CBC.xml";
 	else cHWFile = "settings/HWDescription_2CBC.xml";
 
-	std::cout << "cHWFile = " << cHWFile << std::endl;
+	std::string cDestinationPath;
+	if ( argc == 3 ) cDestinationPath = argv[2];
+	else cDestinationPath = "Results/";
+	cDestinationPath += "Calibration";
+
 	TApplication cApp( "Root Application", &argc, argv );
 	TQObject::Connect( "TCanvas", "Closed()", "TApplication", &cApp, "Terminate()" );
 
 	Calibration cCalibration;
 	cCalibration.InitializeHw( cHWFile );
 	cCalibration.InitializeSettings( cHWFile );
-	cCalibration.CreateResultDirectory( "Results/Calibration" );
-	cCalibration.InitResultFile();
+	cCalibration.CreateResultDirectory( cDestinationPath );
+	cCalibration.InitResultFile( "CalibrationResults" );
 	cCalibration.InitialiseTestGroup();
 	cCalibration.ConfigureHw();
 	cCalibration.VplusScan();

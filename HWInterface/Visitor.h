@@ -59,5 +59,4 @@ class HwDescriptionVisitor
 	virtual void visit( Ph2_HwDescription::Cbc& pCbc ) {}
 };
 
-
 #endif

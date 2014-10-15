@@ -39,17 +39,19 @@ uint64_t get_time()
 
 int main( int argc, char* argv[] )
 {
+	syntax( argc );
+	
 	int pEventsperVcth;
 	int cVcth;
 
-	if (sscanf (argv[1],"%i", &cVcth)!=1) { printf ("ERROR: not an integer"); }
-	if (sscanf (argv[2],"%xu", &pEventsperVcth)!=1) { printf ("ERROR: not an integer"); }
-
-	syntax( argc );
-
-	std::string cHWFile;
-	if ( argc > 1 && !strcmp( argv[3], "8CBC" ) ) cHWFile = "settings/HWDescription_8CBC.xml";
-	else cHWFile = "settings/HWDescription_2CBC.xml";
+	if ( sscanf( argv[1], "%xu", &cVcth ) != 1 )
+		printf( "ERROR: not an integer" );
+	if ( sscanf( argv[2], "%i", &pEventsperVcth ) != 1 )
+		printf( "ERROR: not an integer" );
+	std::cout << "Taking " << pEventsperVcth << " Events @ VCth of " << cVcth << std::endl;
+	std::string cHWFile = argv[3];
+//	if ( argc > 1 && !strcmp( argv[3], "8CBC" ) ) cHWFile = "settings/HWDescription_8CBC.xml";
+//	else cHWFile = "settings/HybridTest2CBC.xml";
 
 	std::cout << "cHWFile = " << cHWFile << std::endl;
 	// TApplication cApp( "Root Application", &argc, argv );
@@ -63,14 +65,14 @@ int main( int argc, char* argv[] )
 
 	uint64_t t0 = get_time();
 
-	for ( auto cShelve : cSystemController.fShelveVec )
+	for ( auto cShelve : cSystemController.fShelveVector )
 	{
 		for ( auto cBoard : ( cShelve )->fBoardVector )
 		{
 			for ( auto cFe : cBoard.fModuleVector )
 			{
 				for ( auto cCbc : cFe.fCbcVector )
-					cSystemController.fCbcInterface->WriteCbcReg( &cCbc, "VCth", uint8_t(cVcth) );
+					cSystemController.fCbcInterface->WriteCbcReg( &cCbc, "VCth", uint8_t( cVcth ) );
 			}
 		}
 	}
@@ -84,7 +86,8 @@ int main( int argc, char* argv[] )
 
 	while ( cN < pEventsperVcth )
 	{
-		BeBoard pBoard = cSystemController.fShelveVec.at( 0 )->fBoardVector.at( 0 );
+		if(cN == pEventsperVcth) break;
+		BeBoard pBoard = cSystemController.fShelveVector.at( 0 )->fBoardVector.at( 0 );
 		cSystemController.Run( &pBoard, cNthAcq );
 
 		const Event* cEvent = cSystemController.fBeBoardInterface->GetNextEvent( &pBoard );

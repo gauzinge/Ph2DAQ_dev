@@ -21,18 +21,6 @@
 
 namespace Ph2_HwDescription
 {
-
-
-	// Default C'tor
-	Cbc::Cbc() : FrontEndDescription()
-	{
-		fCbcId = 0;
-		loadfRegMap( DEFAULT_FILE );
-
-	}
-
-
-
 	// C'tors with object FE Description
 
 	Cbc::Cbc( FrontEndDescription& pFeDesc, uint8_t pCbcId, const std::string& filename ): FrontEndDescription( pFeDesc )
@@ -42,14 +30,6 @@ namespace Ph2_HwDescription
 		loadfRegMap( filename );
 	}
 
-
-	Cbc::Cbc( FrontEndDescription& pFeDesc, uint8_t pCbcId ) : FrontEndDescription( pFeDesc )
-	{
-		fCbcId = pCbcId;
-		loadfRegMap( DEFAULT_FILE );
-	}
-
-
 	// C'tors which take ShelveID, BeId, FMCId, FeID, CbcId
 
 	Cbc::Cbc( uint8_t pShelveId, uint8_t pBeId, uint8_t pFMCId, uint8_t pFeId, uint8_t pCbcId, const std::string& filename ) : FrontEndDescription( pShelveId, pBeId, pFMCId, pFeId )
@@ -58,15 +38,6 @@ namespace Ph2_HwDescription
 		fCbcId = pCbcId;
 		loadfRegMap( filename );
 	}
-
-
-	Cbc::Cbc( uint8_t pShelveId, uint8_t pBeId, uint8_t pFMCId, uint8_t pFeId, uint8_t pCbcId ) : FrontEndDescription( pShelveId, pBeId, pFMCId, pFeId )
-	{
-		fCbcId = pCbcId;
-		loadfRegMap( DEFAULT_FILE );
-
-	}
-
 
 	// Copy C'tor
 

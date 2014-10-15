@@ -1,4 +1,4 @@
-Objs                    = Calibration.o Channel.o
+Objs                    = Calibration.o Channel.o HybridTester.o
 CC              = gcc
 CXX             = g++
 CCFlags         = -g -O1 -w -Wall -pedantic -fPIC `root-config --cflags --evelibs` -Wcpp

@@ -21,24 +21,15 @@ namespace Ph2_HwInterface
 	//Constructor, makes the board map
 	BeBoardFWInterface::BeBoardFWInterface( const char* puHalConfigFileName, uint32_t pBoardId ) :
 		RegManager( puHalConfigFileName, pBoardId ),
-		fNTotalAcq( 0 ),
-		//fNegativeLogicCBC(true),
-		fDataFile( 0 )
+		fNTotalAcq( 0 )
 	{
-		fData = new Data( 0 );
+		fData = new Data( );
 	}
 
 
 	BeBoardFWInterface::~BeBoardFWInterface()
 	{
 		delete fData;
-	}
-
-
-	void BeBoardFWInterface::defineEventSize( uint32_t pNbCbc )
-	{
-		delete fData;
-		fData = new Data( pNbCbc );
 	}
 
 

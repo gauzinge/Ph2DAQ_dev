@@ -12,6 +12,9 @@
 #include "TROOT.h"
 #include "TCanvas.h"
 #include "../System/ConsoleColor.h"
+#include "../HWInterface/Utilities.h"
+
+
 
 struct Channel
 {

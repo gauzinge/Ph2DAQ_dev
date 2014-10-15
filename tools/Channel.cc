@@ -2,15 +2,7 @@
 #include "TMath.h"
 #include <cmath>
 
-Double_t MyErf( Double_t* x, Double_t* par )
-{
-	Double_t x0 = par[0];
-	Double_t width = par[1];
-	Double_t fitval( 0 );
-	if ( x[0] < x0 ) fitval = 0.5 * TMath::Erfc( ( x0 - x[0] ) / width );
-	else fitval = 0.5 + 0.5 * TMath::Erf( ( x[0] - x0 ) / width );
-	return fitval;
-}
+
 
 Channel::Channel( uint8_t pBeId, uint8_t pFeId, uint8_t pCbcId, uint8_t pChannelId ) :
 	fBeId( pBeId ),
@@ -37,7 +29,9 @@ double Channel::getNoise()
 {
 
 	if ( fFit != NULL )
-		return fabs( fFit->GetParError( 0 ) );
+		// return fabs( fFit->GetParError( 0 ) );
+		return fabs( fFit->GetParameter( 1 ) );
+
 	else return -1;
 }
 

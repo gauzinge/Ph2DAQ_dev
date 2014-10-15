@@ -278,18 +278,30 @@ namespace Ph2_HwInterface
 
 		uhal::ValWord<uint32_t> cVal;
 
-		// Since the Number of  Packets is a FW register, it should be read from the Settings Table, add 10 as safety
-		// uint32_t cNPackets = EVENT_NUMBER + 1;
-		uint32_t cNPackets = pBoard->getReg( "user_wb_ttc_fmc_regs.pc_commands.CBC_DATA_PACKET_NUMBER" ) + 10;
+		// Since the Number of  Packets is a FW register, it should be read from the Settings Table, add 1 to avoid upsetting the EventCounter
+		uint32_t cNPackets = pBoard->getReg( "user_wb_ttc_fmc_regs.pc_commands.CBC_DATA_PACKET_NUMBER" ) + 1 ;
 
+		//use a counting visitor to find out the number of CBCs
+		struct CbcCounter : public HwDescriptionVisitor
+		{
+			uint32_t fNCbc = 0;
 
-		// number of CBC's * number of Modules * 9 32 bit words (CBC data) + 6  32 bit words (header + TDC)
-		uint32_t cBlockSize = cNPackets * ( pBoard->getModule( 0 )->getNCbc() * pBoard->getNFe() * 9 + 6 );
+			void visit( Cbc& pCbc ) {
+				fNCbc++;
+			}
+			uint32_t getNCbc() {
+				if ( fNCbc == 2 )
+					// since the 2 CBC FW outputs data for 4 CBCs (beamtest heritage, might have to change in the future)
+					return 2 * fNCbc;
+				else return fNCbc;
+			}
+		};
 
-		defineEventSize( pBoard->getModule( 0 )->getNCbc() );
-
-		// fData->Initialise( EVENT_NUMBER, *pBoard );
-		fData->Initialise( cNPackets , *pBoard );
+		CbcCounter cCounter;
+		pBoard->accept( cCounter );
+		// compute the block size according to the number of CBC's on this board
+		// this will have to change with a more generic FW
+		uint32_t cBlockSize = cNPackets * ( cCounter.getNCbc() * CBC_EVENT_SIZE_32 + EVENT_HEADER_TDC_SIZE_32 ); // in 32 bit words
 
 		//Wait for start acknowledge
 		do
@@ -336,7 +348,6 @@ namespace Ph2_HwInterface
 		if ( pBreakTrigger )
 			WriteReg( BREAK_TRIGGER, 1 );
 
-		// JRF end
 
 #ifdef __CBCDAQ_DEV__
 		gettimeofday( &fStartVeto, 0 );
@@ -397,8 +408,12 @@ namespace Ph2_HwInterface
 		mtime = getTimeTook( cStartReadDataInSRAM, 1 );
 		std::cout << "Time took for ReadDataInSRAM: " << std::dec << mtime << " ms." << std::endl;
 #endif
+		// just creates a new Data object, setting the pointers and getting the correct sizes happens in Set()
+		if ( fData ) delete fData;
+		fData = new Data();
 
-		fData->Set( &cDataAlt );
+		// set the vector<uint32_t> as event buffer and let him know how many packets it contains
+		fData->Set( &cDataAlt , cNPackets );
 
 	}
 
@@ -411,9 +426,9 @@ namespace Ph2_HwInterface
 	}
 
 
-	const Event* GlibFWInterface::GetNextEvent()
+	const Event* GlibFWInterface::GetNextEvent( BeBoard* pBoard )
 	{
-		return fData->GetNextEvent();
+		return fData->GetNextEvent( pBoard );
 	}
 
 

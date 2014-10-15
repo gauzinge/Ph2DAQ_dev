@@ -17,19 +17,15 @@ ExternalObjects = $(LibraryPaths) -lpthread -lboost_thread -lboost_filesystem -l
 	$(CXX) -std=c++11 $(DevFlags) $(CCFlags) $(UserCCFlags) $(CCDefines) $(IncludePaths) -c -o $@ $<
 
 
-all: testpgrm mcp system calibrate interfacetest datatest
-
-testpgrm: test.cc
-	$(CXX) -std=c++11 $(CCFlags) -o $@ $< $(IncludePaths) $(ExternalObjects)
-	mv $@ ../bin
+all: system calibrate interfacetest datatest hybridtest
 
 system: systemtest.cc
 	$(CXX) -std=c++11 $(CCFlags) -o $@ $< $(IncludePaths) $(ExternalObjects)
 	mv $@ ../bin
 
-mcp: mcp.cc
-	$(CXX) -std=c++11 $(CCFlags) -o $@ $< $(IncludePaths) $(ExternalObjects)
-	mv $@ ../bin
+# mcp: mcp.cc
+# 	$(CXX) -std=c++11 $(CCFlags) -o $@ $< $(IncludePaths) $(ExternalObjects)
+# 	mv $@ ../bin
 
 calibrate: calibrate.cc
 	$(CXX) -std=c++11 $(CCFlags) -o $@ $< $(IncludePaths) $(ExternalObjects)
@@ -40,6 +36,10 @@ interfacetest: interfacetest.cc
 	mv $@ ../bin
 
 datatest: datatest.cc
+	$(CXX) -std=c++11 $(CCFlags) -o $@ $< $(IncludePaths) $(ExternalObjects)
+	mv $@ ../bin
+
+hybridtest: hybridtest.cc
 	$(CXX) -std=c++11 $(CCFlags) -o $@ $< $(IncludePaths) $(ExternalObjects)
 	mv $@ ../bin
 

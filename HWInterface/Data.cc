@@ -10,119 +10,60 @@
  */
 
 #include "Data.h"
-#include "../HWDescription/Definition.h"
 #include <iostream>
 
 namespace Ph2_HwInterface
 {
-
-	//--------------------------------------------------------------------------
-	// Swapping
-
-	// void swap_byte_order( const void *org, void *swapped, unsigned int nbyte )
-	// {
-	//     for( unsigned int i=0; i<nbyte; i++ ){
-	//         ((char *)swapped)[i] = ((char *)org)[nbyte-1-i];
-	//     }
-	// }
-
-	// Have to see if this actually works
-	// void swap_byte_order( const void *org, void *swapped, unsigned int nbyte )
-	// {
-	//    // swapped = ((org >> 24) & 0xFF) | ((org >> 8) & 0x0000FF00) | ((org << 8) & 0x00FF0000) | ((org << 24) & 0xFF000000);
-	//     // static const unsigned char t[16] =
-	//     // {
-	//     //   0x0, 0x8, 0x4, 0xC, 0x2, 0xA, 0x6, 0xE,
-	//     //   0x1, 0x9, 0x5, 0xD, 0x3, 0xB, 0x7, 0xF
-	//     // };
-	//     // t[*(char*)org >> nbyte] | (t[*(char*)org & 0xF] << nbyte);
-	//     // (char*) swapped = &t;
-	//     (char*) swapped[0] = (char*)org[3];
-	//     (char*) swapped[1] = (char*)org[2];
-	//     (char*) swapped[2] = (char*)org[1];
-	//     (char*) swapped[3] = (char*)org[0];
-
-	// }
-
-	//--------------------------------------------------------------------------
 	//Data Class
 
-	Data::Data( BeBoard& pBoard, uint32_t pNbCbc ) :
-		fBuf( 0 ),
-		fCurrentEvent( 0 ),
-		fEvent( pNbCbc )
-	{
-		fEvent.AddBoard( pBoard );
-	}
-
-	Data::Data( Data& pD ) :
-		fEvent( 0 )
+	// copy constructor
+	Data::Data( Data& pD )
 	{
 		fBuf = 0;
-		Initialise( pD.fNevents );
-		fEvent = pD.fEvent;
+		// Initialise( pD.fNevents );
 		fBufSize = pD.fBufSize;
 		fNevents = pD.fNevents;
 		fCurrentEvent = pD.fCurrentEvent;
+		fNCbc = pD.fNCbc;
+		fEvent = pD.fEvent;
+		fEventSize = pD.fEventSize;
 	}
 
 
-	void Data::Set( void* pData )
+	void Data::Set( std::vector<uint32_t>* pData, uint32_t pNevents )
 	{
+
+		// initialize the buffer data array and the buffer size (one 32 bit word is 4 char!)
+		fBufSize = pData->size() * 4;
+		fNevents = uint32_t( pNevents );
+		fEventSize = uint32_t( fBufSize / fNevents );
+		fNCbc = ( fEventSize - ( EVENT_HEADER_TDC_SIZE_CHAR ) ) / ( CBC_EVENT_SIZE_CHAR );
+
+#ifdef __CBCDAQ_DEV__
+		std::cout << "Initializing buffer with " << pData->size() << " 32 bit words and " << fBufSize << " chars containing data from " << fNevents << "  Events with an eventbuffer size of " << fEventSize << " and " << fNCbc << " CBCs each! " << EVENT_HEADER_TDC_SIZE_CHAR << " " << CBC_EVENT_SIZE_CHAR << std::endl;
+#endif
+
+		if ( fBuf ) free( fBuf );
+		fBuf = ( char* )malloc( pData->size() * 4 );
+
 		Reset();
 
-		std::vector<uint32_t>* cData = ( std::vector<uint32_t>* ) pData;
-
-		for ( unsigned int i = 0; i < cData->size(); i++ )
+		for ( unsigned int i = 0; i < pData->size(); i++ )
 		{
 
-			char cSwapped[4];
-			uint32_t cVal = cData->at( i );
-
-			swapByteOrder( ( const char* ) &cVal, cSwapped, 4 );
+			char  cSwapped[4];
+			uint32_t cVal = pData->at( i );
+			// char buf[4];
+			// buf[0] = pData->at( i ) >> 24;
+			// buf[1] = pData->at( i ) >> 16;
+			// buf[2] = pData->at( i ) >> 8;
+			// buf[3] = pData->at( i );
+			swapByteOrder( ( const char* )  &cVal , cSwapped, 4 );
 
 			for ( int j = 0; j < 4; j++ )
 				fBuf[i * 4 + j] = cSwapped[j];
 		}
 	}
-
-
-	void Data::Initialise( uint32_t pNevents )
-	{
-		fNevents = pNevents;
-		fBufSize = ( fNevents + 1 ) * fEvent.fEventSize * 4;
-		if ( fBuf )
-			free( fBuf );
-		fBuf = ( char* ) malloc( fBufSize );
-
-		fEvent.Clear();
-
-#ifdef __CBCDAQ_DEV__
-		std::cout << "Data::Initialise done." << std::endl;
-#endif
-
-	}
-
-
-	void Data::Initialise( uint32_t pNevents, BeBoard& pBoard )
-	{
-
-		fNevents = pNevents;
-		fBufSize = ( fNevents + 1 ) * fEvent.fEventSize * 4;
-		if ( fBuf )
-			free( fBuf );
-		fBuf = ( char* ) malloc( fBufSize );
-
-		fEvent.Clear();
-
-		fEvent.AddBoard( pBoard );
-
-#ifdef __CBCDAQ_DEV__
-		std::cout << "Data::Initialise done." << std::endl;
-#endif
-
-	}
-
 
 	void Data::Reset()
 	{
@@ -137,15 +78,6 @@ namespace Ph2_HwInterface
 	{
 		memcpy( fBuf, pData.fBuf, pData.fBufSize );
 	}
-
-
-	// void Data::swapByteOrder( const char *org, char *swapped, unsigned int nbyte )
-	// {
-	//     for( unsigned int i=0; i<nbyte; i++ )
-	//     {
-	//         swapped[i] = org[nbyte-1-i];
-	//     }
-	// }
 
 	void Data::swapByteOrder( const char* org, char* swapped, unsigned int nbyte )
 	{
@@ -163,12 +95,20 @@ namespace Ph2_HwInterface
 	}
 
 
-	const Event* Data::GetNextEvent()
+	const Event* Data::GetNextEvent( BeBoard* pBoard )
 	{
-		if ( fCurrentEvent >= fNevents ) return 0;
-		fEvent.SetEvent( &fBuf[ fCurrentEvent * fEvent.fEventSize * 4 ] );
-		fCurrentEvent++;
-		return &fEvent;
+		if ( fCurrentEvent >= fNevents ) return NULL;
+		else
+		{
+#ifdef __CBCDAQ_DEV__
+			std::cout << "Get Next Event Event " << fCurrentEvent << " and position in buffer " << fCurrentEvent* fEvent->fEventSize << std::endl;
+#endif
+
+			if ( fEvent ) delete fEvent;
+			fEvent = new Event( pBoard, fNCbc, &fBuf[ fCurrentEvent * fEventSize ] );
+			fCurrentEvent++;
+			return fEvent;
+		}
 	}
 
 }

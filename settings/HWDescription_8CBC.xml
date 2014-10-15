@@ -14,7 +14,7 @@
         	<Register name="cbc_stubdata_latency_adjust_fe2"> 1 </Register>
         	<Register name="user_wb_ttc_fmc_regs.pc_commands.ACQ_MODE"> 1 </Register>
         	<Register name="user_wb_ttc_fmc_regs.pc_commands.CBC_DATA_GENE"> 1 </Register>
-        	<Register name="user_wb_ttc_fmc_regs.pc_commands.CBC_DATA_PACKET_NUMBER"> 10 </Register>
+        	<Register name="user_wb_ttc_fmc_regs.pc_commands.CBC_DATA_PACKET_NUMBER"> 20 </Register>
         	<Register name="user_wb_ttc_fmc_regs.pc_commands.INT_TRIGGER_FREQ"> 15 </Register>
         	<Register name="user_wb_ttc_fmc_regs.pc_commands.TRIGGER_SEL"> 0 </Register>
         	<Register name="user_wb_ttc_fmc_regs.pc_commands2.clock_shift"> 0 </Register>
@@ -24,15 +24,17 @@
         	<Module FeId="0" FMCId="0" ModuleId="0" Status="1">
         		<!-- <Global_CBC_Register name="VCth"> 0x78 </Global_CBC_Register> -->
                 <Global_CBC_Register name="TriggerLatency"> 0x0C </Global_CBC_Register>
+                <CBC_Files path="./settings/"/>
 
-        		<CBC Id="0" configfile="./settings/Cbc_default_hole.txt"/>
-        		<CBC Id="1" configfile="./settings/Cbc_default_hole.txt"/>
-        		<CBC Id="2" configfile="./settings/Cbc_default_hole.txt"/>
-        		<CBC Id="3" configfile="./settings/Cbc_default_hole.txt"/>
-        		<CBC Id="4" configfile="./settings/Cbc_default_hole.txt"/>
-        		<CBC Id="5" configfile="./settings/Cbc_default_hole.txt"/>
-        		<CBC Id="6" configfile="./settings/Cbc_default_hole.txt"/>
-        		<CBC Id="7" configfile="./settings/Cbc_default_hole.txt"/>
+
+        		<CBC Id="0" configfile="Cbc_default_hole.txt"/>
+        		<CBC Id="1" configfile="Cbc_default_hole.txt"/>
+        		<CBC Id="2" configfile="Cbc_default_hole.txt"/>
+        		<CBC Id="3" configfile="Cbc_default_hole.txt"/>
+        		<CBC Id="4" configfile="Cbc_default_hole.txt"/>
+        		<CBC Id="5" configfile="Cbc_default_hole.txt"/>
+        		<CBC Id="6" configfile="Cbc_default_hole.txt"/>
+        		<CBC Id="7" configfile="Cbc_default_hole.txt"/>
         	</Module>
         </BeBoard>
     </Shelve>

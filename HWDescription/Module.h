@@ -14,7 +14,7 @@
 
 #include "FrontEndDescription.h"
 #include "Cbc.h"
-#include "Visitor.h"
+#include "../HWInterface/Visitor.h"
 #include <vector>
 #include <stdint.h>
 

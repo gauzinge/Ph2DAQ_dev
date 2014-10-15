@@ -45,20 +45,19 @@ namespace Ph2_HwInterface
 		EventMap fEventMap;                     /*!< Event map */
 		uint32_t fBunch;                     /*!< Bunch value */
 		uint32_t fOrbit;                     /*!< Orbit value */
-		uint32_t fLumi;                     /*!< Luminense value */
+		uint32_t fLumi;                     /*!< LuminositySection value */
 		uint32_t fEventCount;                     /*!< Event Counter */
 		uint32_t fEventCountCBC;                     /*!< Cbc Event Counter */
-		uint32_t fTDC;                     /*!< TDC ?? */
+		uint32_t fTDC;                     /*!< TDC value*/
 
 	  public:
 		uint32_t fEventSize;                     /*!< Size of an Event */
-		uint32_t fFeNChar;                     /*!< Size of a Fe Event */
 		uint32_t fOffsetTDC;                     /*!< Offset of TDC */
 
 	  private:
 		/*!
 		 * \brief Method to set the size of the Event according to the number of CBCs
-		 * \param pNbCbc: Number of CBCs connected
+		 * \param pNbCbc : Number of CBCs connected
 		 */
 		void SetSize( uint32_t pNbCbc );
 
@@ -66,14 +65,16 @@ namespace Ph2_HwInterface
 		/*!
 		 * \brief Constructor of the Event Class
 		 * \param pNbCbc
+		 * \param pEventBuf : the pointer to the raw Event buffer of this Event
 		 */
-		Event( uint32_t pNbCbc );
+		Event( uint32_t pNbCbc, char* pEventBuf );
 		/*!
 		 * \brief Constructor of the Event Class
 		 * \param pBoard : Board to work with
 		 * \param pNbCbc
+		 * \param pEventBuf : the pointer to the raw Event buffer of this Event
 		 */
-		Event( BeBoard& pBoard, uint32_t pNbCbc );
+		Event( BeBoard* pBoard, uint32_t pNbCbc, char* pEventBuf );
 		/*!
 		 * \brief Copy Constructor of the Event Class
 		 */
@@ -93,7 +94,7 @@ namespace Ph2_HwInterface
 		 * \brief Add a board structure in the map
 		 * \param pBoard : board to work with
 		 */
-		void AddBoard( BeBoard& pBoard );
+		void AddBoard( BeBoard* pBoard );
 		/*!
 		 * \brief Set an Event to the Event map
 		 * \param pEvent : Event to set
@@ -259,8 +260,10 @@ namespace Ph2_HwInterface
 			return GetCbcEvent( pFeId, pCbcId )[pBytePosition];
 		}
 
-          const EventMap& GetEventMap() const {return fEventMap;}
-          friend ostream& operator<< (ostream &out, const Event& ev);
+		const EventMap& GetEventMap() const {
+			return fEventMap;
+		}
+		friend ostream& operator<< ( ostream& out, const Event& ev );
 	};
 }
 #endif
