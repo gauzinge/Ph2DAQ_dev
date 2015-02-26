@@ -305,4 +305,4 @@ This uses TCP protocol instead of UDP which accounts for packet loss but decreas
 Support, Suggestions ?
 ----------------------
 
-For any support/suggestions, mail georg.auzingerSPAMNOT@cern.ch
+For any support request/suggestions, mail georg.auzingerSPAMNOT@cern.ch
