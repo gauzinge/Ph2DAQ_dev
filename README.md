@@ -475,4 +475,4 @@ Several bugs / problematic behavior has been reported by various users that is n
 
 ### Support, Suggestions ?
 
-For any support/suggestions, mail georg.auzingerSPAMNOT@cern.ch
+For any support request/suggestions, mail georg.auzingerSPAMNOT@cern.ch
