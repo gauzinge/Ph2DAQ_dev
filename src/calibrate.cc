@@ -70,7 +70,7 @@ int main ( int argc, char* argv[] )
     std::string cHWFile = ( cmd.foundOption ( "file" ) ) ? cmd.optionValue ( "file" ) : "settings/Calibration8CBC.xml";
     std::string cDirectory = ( cmd.foundOption ( "output" ) ) ? cmd.optionValue ( "output" ) : "Results/";
     cDirectory += "Calibration";
-    bool cVplus = ( cmd.foundOption ( "skip" ) ) ? false : true;
+    bool cSkip = ( cmd.foundOption ( "skip" ) ) ? true : false;
     //bool cOld = ( cmd.foundOption( "old" ) ) ? true : false;
 
     //bool cCalibrateTGrp = ( cmd.foundOption ( "allChan" ) ) ? true : false;
@@ -106,7 +106,18 @@ int main ( int argc, char* argv[] )
     //cCalibration->ConfigureHw();
     cCalibration.Initialise ( false );
 
-    if ( cVplus ) cCalibration.FindVplus();
+    if ( !cSkip )
+    {
+        LOG (DEBUG) << "I clearly happe!";
+
+        if (cCalibration.getChipType() == ChipType::CBC2)
+            cCalibration.FindVplus();
+        else if (cCalibration.getChipType() == ChipType::CBC3)
+        {
+            cCalibration.FindTargetVcth();
+            LOG (DEBUG) << "Correct so far!";
+        }
+    }
 
     cCalibration.FindOffsets();
     cCalibration.SaveResults();

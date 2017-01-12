@@ -44,7 +44,6 @@ namespace Ph2_HwInterface {
         if (pType != BoardType::CBC3FC7) fNCbc = ( fEventSize - ( EVENT_HEADER_TDC_SIZE_32 ) ) / ( CBC_EVENT_SIZE_32 );
         else fNCbc = (fEventSize - (EVENT_HEADER_SIZE_32_CBC3) ) / (CBC_EVENT_SIZE_32_CBC3);
 
-
         // to fill fEventList
         std::vector<uint32_t> lvec;
 

@@ -76,7 +76,7 @@ class SCurve : public Tool
     void setOffset ( uint8_t pOffset, int  pGroup );
 
     // SCurve related
-    void measureSCurves ( int  pTGrpId );
+    void measureSCurves ( int  pTGrpId, uint16_t pStartValue = 0x00 );
     void measureSCurvesOffset ( int  pTGrpId );
     uint32_t fillSCurves ( BeBoard* pBoard,  const Event* pEvent, uint16_t pValue, int  pTGrpId, bool pDraw = false );
     void initializeSCurves ( TString pParameter, uint16_t pValue, int  pTGrpId );

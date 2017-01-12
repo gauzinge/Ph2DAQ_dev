@@ -12,8 +12,9 @@
 #ifndef Calibration_h__
 #define Calibration_h__
 
-#include "Tool.h"
-#include "Channel.h"
+//#include "Tool.h"
+//#include "Channel.h"
+#include "SCurve.h"
 #include "../Utils/Visitor.h"
 #include "../Utils/CommonVisitors.h"
 
@@ -33,16 +34,19 @@ using namespace Ph2_System;
 
 
 // Typedefs for Containers
-typedef std::map<Cbc*, std::vector<Channel> > CbcChannelMap;
+//typedef std::map<Cbc*, std::vector<Channel> > CbcChannelMap;
 // typedef std::map<Cbc*, TF1*> FitMap;
 // typedef std::map<Cbc*, TH1F*> HistMap;
-typedef std::vector<std::pair< std::string, uint8_t> > RegisterVector;
-typedef std::map< int, std::vector<uint8_t> >  TestGroupChannelMap;
+//typedef std::vector<std::pair< std::string, uint8_t> > RegisterVector;
+//typedef std::map< int, std::vector<uint8_t> >  TestGroupChannelMap;
 
-class Calibration : public Tool
+//class Calibration : public Tool
+class Calibration : public SCurve
 {
   public:
-    Calibration() {};
+    Calibration()
+    {
+    };
     ~Calibration()
     {
         //if ( fResultFile ) {
@@ -53,6 +57,7 @@ class Calibration : public Tool
 
     void Initialise ( bool pAllChan = false );
     void FindVplus();
+    float FindTargetVcth();
     // offsets are found by taking pMultiple*fEvents triggers
     void FindOffsets();
     void SaveResults()
@@ -61,6 +66,10 @@ class Calibration : public Tool
         //dumpConfigFiles();
     }
 
+    ChipType getChipType()
+    {
+        return fType;
+    }
 
   protected:
     void MakeTestGroups ( bool pAllChan = false );
@@ -90,6 +99,7 @@ class Calibration : public Tool
     void writeGraphs();
 
 
+
   private:
     // helper methods
     void setRegBit ( uint8_t& pRegValue, uint8_t pPos, bool pValue )
@@ -113,21 +123,22 @@ class Calibration : public Tool
     TCanvas* fOccupancyCanvas;
 
     // Containers
-    TestGroupChannelMap fTestGroupChannelMap;
+    //TestGroupChannelMap fTestGroupChannelMap;
     std::map<Cbc*, uint8_t> fVplusMap;
 
     // Counters
-    uint32_t fNCbc;
-    uint32_t fNFe;
+    //uint32_t fNCbc;
+    //uint32_t fNFe;
 
     // Settings
-    bool fHoleMode;
-    bool fTestPulse;
-    uint8_t fTestPulseAmplitude;
-    uint32_t fEventsPerPoint;
+    //bool fHoleMode;
+    //bool fTestPulse;
+    //uint8_t fTestPulseAmplitude;
+    //uint32_t fEventsPerPoint;
     uint16_t fTargetVcth;
     uint8_t fTargetOffset;
     bool fCheckLoop;
+    //ChipType fChipType;
 
 };
 

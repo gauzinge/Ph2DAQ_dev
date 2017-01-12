@@ -42,12 +42,23 @@ void Calibration::Initialise ( bool pAllChan )
             uint32_t cFeId = cFe->getFeId();
             cFeCount++;
 
+            //figure out the chip type
+            fType = cFe->getChipType();
+
             for ( auto cCbc : cFe->fCbcVector )
             {
                 uint32_t cCbcId = cCbc->getCbcId();
                 cCbcCount++;
 
                 if ( cCbcId > cCbcIdMax ) cCbcIdMax = cCbcId;
+
+                // populate the channel vector
+                std::vector<Channel> cChanVec;
+
+                for ( uint8_t cChan = 0; cChan < NCHANNELS; cChan++ )
+                    cChanVec.push_back ( Channel ( cBoardId, cFeId, cCbcId, cChan ) );
+
+                fCbcChannelMap[cCbc] = cChanVec;
 
                 fVplusMap[cCbc] = 0;
 
@@ -81,6 +92,19 @@ void Calibration::Initialise ( bool pAllChan )
 
                 TH1F* cOccHist = new TH1F ( cName, Form ( "Occupancy FE%d CBC%d ; Channel; Occupancy", cFeId, cCbcId ), 254, -.5, 254.5 );
                 bookHistogram ( cCbc, "Occupancy", cOccHist );
+
+                //only needed for CBC3 calibration algorithm
+                if (fType == ChipType::CBC3)
+                {
+                    cName = Form ( "h_UntunedPedestal_Fe%dCBC%d", cFeId, cCbcId );
+                    cObj = gROOT->FindObject (cName);
+
+                    if (cObj) delete cObj;
+
+                    TH1F* cPedeHist = new TH1F ( cName, cName, 2048, -0.5, 1023.5 );
+                    bookHistogram ( cCbc, "Untuned_Pedestal", cPedeHist );
+
+                }
             }
         }
 
@@ -96,10 +120,23 @@ void Calibration::Initialise ( bool pAllChan )
 
 
     LOG (INFO) << "Created Object Maps and parsed settings:" ;
-    LOG (INFO) << "	Hole Mode = " << fHoleMode ;
+
+    if (fType != ChipType::CBC3)
+    {
+        LOG (INFO) << "	Hole Mode = " << fHoleMode ;
+        LOG (INFO) << "	TargetOffset = " << int ( fTargetOffset ) ;
+        LOG (INFO) << "	TargetVcth = " << int ( fTargetVcth ) ;
+    }
+    else
+    {
+        LOG (INFO) << "Hole mode does not make sense for CBC3, setting to 0!";
+        LOG (INFO) << "TargetOffset does not make sense for CBC3, setting to 0!";
+        LOG (INFO) << "TargetVcth does not make sense for CBC3, should be determined algorithmically by scanning - still keeping value in case scan is skipped!";
+        fHoleMode = 0;
+        fTargetOffset = 0xFF;
+    }
+
     LOG (INFO) << "	Nevents = " << fEventsPerPoint ;
-    LOG (INFO) << "	TargetVcth = " << int ( fTargetVcth ) ;
-    LOG (INFO) << "	TargetOffset = " << int ( fTargetOffset ) ;
     LOG (INFO) << "	TestPulseAmplitude = " << int ( fTestPulseAmplitude ) ;
 }
 
@@ -150,55 +187,59 @@ void Calibration::MakeTestGroups ( bool pAllChan )
 
 void Calibration::FindVplus()
 {
-    // first, set VCth to the target value for each CBC
-    ThresholdVisitor cThresholdVisitor (fCbcInterface, fTargetVcth);
-    this->accept (cThresholdVisitor);
-
-    // now all offsets are either off (0x00 in holes mode, 0xFF in electrons mode)
-    // next a group needs to be enabled - therefore now the group loop
-    LOG (INFO) << BOLDBLUE << "Extracting Vplus ..." << RESET ;
-
-    for ( auto& cTGroup : fTestGroupChannelMap )
+    if (fType == ChipType::CBC2)
     {
-        if (cTGroup.first == -1)
+        // first, set VCth to the target value for each CBC
+        ThresholdVisitor cThresholdVisitor (fCbcInterface, fTargetVcth);
+        this->accept (cThresholdVisitor);
+
+        // now all offsets are either off (0x00 in holes mode, 0xFF in electrons mode)
+        // next a group needs to be enabled - therefore now the group loop
+        LOG (INFO) << BOLDBLUE << "Extracting Vplus ..." << RESET ;
+
+        for ( auto& cTGroup : fTestGroupChannelMap )
         {
-            // start with a fresh <Cbc, Vplus> map
-            clearVPlusMap();
-
-            // looping over the test groups, enable it
-            LOG (INFO) << GREEN << "Enabling Test Group...." << cTGroup.first << RESET ;
-            setOffset ( fTargetOffset, cTGroup.first, true ); // takes the group ID
-            //updateHists ( "Offsets" );
-
-            bitwiseVplus ( cTGroup.first );
-
-            LOG (INFO) << RED << "Disabling Test Group...." << cTGroup.first << RESET  ;
-            uint8_t cOffset = ( fHoleMode ) ? 0x00 : 0xFF;
-            setOffset ( cOffset, cTGroup.first, true );
-
-            // done looping all the bits - I should now have the Vplus value that corresponds to 50% occupancy at the desired VCth and Offset for this test group mapped against CBC
-            for ( auto& cCbc : fVplusMap )
+            if (cTGroup.first == -1)
             {
-                TProfile* cTmpProfile = static_cast<TProfile*> ( getHist ( cCbc.first, "Vplus" ) );
-                cTmpProfile->Fill ( cTGroup.first, cCbc.second ); // fill Vplus value for each test group
+                // start with a fresh <Cbc, Vplus> map
+                clearVPlusMap();
+
+                // looping over the test groups, enable it
+                LOG (INFO) << GREEN << "Enabling Test Group...." << cTGroup.first << RESET ;
+                setOffset ( fTargetOffset, cTGroup.first, true ); // takes the group ID
+                //updateHists ( "Offsets" );
+
+                bitwiseVplus ( cTGroup.first );
+
+                LOG (INFO) << RED << "Disabling Test Group...." << cTGroup.first << RESET  ;
+                uint8_t cOffset = ( fHoleMode ) ? 0x00 : 0xFF;
+                setOffset ( cOffset, cTGroup.first, true );
+
+                // done looping all the bits - I should now have the Vplus value that corresponds to 50% occupancy at the desired VCth and Offset for this test group mapped against CBC
+                for ( auto& cCbc : fVplusMap )
+                {
+                    TProfile* cTmpProfile = static_cast<TProfile*> ( getHist ( cCbc.first, "Vplus" ) );
+                    cTmpProfile->Fill ( cTGroup.first, cCbc.second ); // fill Vplus value for each test group
+                }
+
+                //updateHists ( "Vplus" );
+                //
             }
-
-            //updateHists ( "Vplus" );
-            //
         }
+
+        // done extracting reasonable Vplus values for all test groups, now find the mean
+        // since I am lazy and do not want to iterate all boards, FEs etc, i Iterate fVplusMap
+        for ( auto& cCbc : fVplusMap ) //this toggles bit i on Vplus for each
+        {
+            TProfile* cTmpProfile = static_cast<TProfile*> ( getHist ( cCbc.first, "Vplus" ) );
+            cCbc.second = cTmpProfile->GetMean ( 2 );
+
+            fCbcInterface->WriteCbcReg ( cCbc.first, "Vplus", cCbc.second );
+            LOG (INFO) << BOLDGREEN <<  "Mean Vplus value for FE " << +cCbc.first->getFeId() << " CBC " << +cCbc.first->getCbcId() << " is " << BOLDRED << +cCbc.second << RESET ;
+        }
+
     }
-
-    // done extracting reasonable Vplus values for all test groups, now find the mean
-    // since I am lazy and do not want to iterate all boards, FEs etc, i Iterate fVplusMap
-    for ( auto& cCbc : fVplusMap ) //this toggles bit i on Vplus for each
-    {
-        TProfile* cTmpProfile = static_cast<TProfile*> ( getHist ( cCbc.first, "Vplus" ) );
-        cCbc.second = cTmpProfile->GetMean ( 2 );
-
-        fCbcInterface->WriteCbcReg ( cCbc.first, "Vplus", cCbc.second );
-        LOG (INFO) << BOLDGREEN <<  "Mean Vplus value for FE " << +cCbc.first->getFeId() << " CBC " << +cCbc.first->getCbcId() << " is " << BOLDRED << +cCbc.second << RESET ;
-    }
-
+    else LOG (INFO) << "VPlus measurement does not make sense for CBC3, doing nothing!";
 }
 
 void Calibration::bitwiseVplus ( int pTGroup )
@@ -256,6 +297,89 @@ void Calibration::bitwiseVplus ( int pTGroup )
         }
     }
 }
+
+float Calibration::FindTargetVcth()
+{
+    if (fType == ChipType::CBC3)
+    {
+        TCanvas* cCanvas = new TCanvas ( "Untuned Pedestals", "Untuned Pedestal", 425, 10, 500, 500 );
+        cCanvas->DivideSquare (fNCbc);
+
+        LOG (INFO) << BOLDGREEN << "Measuring Untuned SCurve midpoints..." << RESET;
+        uint8_t cOffset = 0xFF;
+        LOG (INFO) << "Disabling all TestGroups by setting all channel offsets to " << std::hex << "0x" << +cOffset << std::dec;
+        //disable all test groups
+        auto cGroup = fTestGroupChannelMap.find (-1);
+
+        if (cGroup != std::end (fTestGroupChannelMap) )
+            setOffset (cOffset, cGroup->first, false);
+
+        else LOG (ERROR) << "Test Group not found!";
+
+        updateHists ( "Offsets" );
+
+        //loop the test groups, enable a group, measure an SCurve
+        for (auto& cTGrp : fTestGroupChannelMap)
+        {
+            if (cTGrp.first != -1)
+            {
+                setOffset ( 0x80, cTGrp.first, true ); // takes the group ID
+                updateHists ( "Offsets" );
+                initializeSCurves ("Offset", 0x80, cTGrp.first);
+                measureSCurves (cTGrp.first, 450);
+                setOffset (cOffset, cTGrp.first, true);
+                updateHists ( "Offsets" );
+            }
+        }
+
+        //process the SCurves and fill in the pedestal Histogram
+        float cMeanPedestal = 0;
+        int iCbc = 1;
+
+        for ( auto& cCbc : fCbcChannelMap )
+        {
+
+            TH1F* cPedeHist  = dynamic_cast<TH1F*> ( getHist ( cCbc.first, "Untuned_Pedestal" ) );
+
+            //std::vector<uint8_t> cTestGrpChannelVec = fTestGroupChannelMap[pTGrp];
+
+            for (uint8_t cChanId = 0; cChanId < NCHANNELS; cChanId++)
+                //for ( auto& cChanId : cTestGrpChannelVec )
+            {
+                //for ( auto& cChan : cCbc.second )
+                Channel cChan = cCbc.second.at ( cChanId );
+
+                // Fit or Differentiate
+                //if ( fFitted ) cChan.fitHist ( fEventsPerPoint, fHoleMode, pValue, pParameter, fResultFile );
+                cChan.differentiateHist ( fEventsPerPoint, fHoleMode, 0, "Untuned", fResultFile );
+
+
+                // instead of the code below, use a histogram to histogram the noise
+                if ( cChan.getNoise() == 0 || cChan.getNoise() > 1023 ) LOG (INFO) << RED << "Error, SCurve Fit for Fe " << int ( cCbc.first->getFeId() ) << " Cbc " << int ( cCbc.first->getCbcId() ) << " Channel " << int ( cChan.fChannelId ) << " did not work correctly! Noise " << cChan.getNoise() << RESET ;
+
+                cPedeHist->Fill ( cChan.getPedestal() );
+            }
+
+            cMeanPedestal += cPedeHist->GetMean();
+            LOG (INFO) << BOLDRED << "Average untuned pedestal for Fe " << +cCbc.first->getFeId() << " Cbc " << +cCbc.first->getCbcId() << " : " << cPedeHist->GetMean() << " Vcth units!" << RESET;
+
+            cCanvas->cd (iCbc);
+            cPedeHist->Draw ("APL");
+            iCbc++;
+        }
+
+        fTargetVcth = static_cast<uint16_t> (cMeanPedestal / fNCbc);
+        LOG (INFO) << BOLDCYAN << "Setting target Vcth to " << fTargetVcth << RESET;
+        return cMeanPedestal / fNCbc;
+
+    }
+    else
+    {
+        LOG (INFO) << "This measurement does not make sense for CBC2, doing nothing!";
+        return 0;
+    }
+}
+
 
 void Calibration::FindOffsets()
 {

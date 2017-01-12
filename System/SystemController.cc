@@ -48,7 +48,7 @@ namespace Ph2_System {
         if (fData) delete fData;
     }
 
-    void SystemController::addFileHandler ( const std::string& pFilename , char pOption )
+    void SystemController::addFileHandler ( const std::string& pFilename, char pOption )
     {
         //if the opion is read, create a handler object and use it to read the
         //file in the method below!
@@ -208,6 +208,7 @@ namespace Ph2_System {
     {
         //reset the data object
         if (fData) delete fData;
+
 
         fData = new Data();
         std::vector<uint32_t> cData;

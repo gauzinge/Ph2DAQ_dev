@@ -67,11 +67,11 @@ void SCurve::setOffset ( uint8_t pOffset, int  pGroup )
 }
 
 
-void SCurve::measureSCurves ( int  pTGrpId )
+void SCurve::measureSCurves ( int  pTGrpId, uint16_t pStartValue )
 {
     // Adaptive Loop to measure SCurves
 
-    LOG (INFO) << BOLDGREEN << "Measuring SCurves sweeping VCth ... " << RESET <<  std::endl;
+    LOG (INFO) << BOLDGREEN << "Measuring SCurves sweeping VCth ... " << RESET;
 
     // Necessary variables
     bool cNonZero = false;
@@ -99,7 +99,7 @@ void SCurve::measureSCurves ( int  pTGrpId )
     }
     else
     {
-        cValue = 0x00;
+        cValue = pStartValue;
         cStep = 10;
     }
 
@@ -131,6 +131,7 @@ void SCurve::measureSCurves ( int  pTGrpId )
         // DEBUG
         if ( cAllOne ) break;
 
+
         for ( BeBoard* pBoard : fBoardVector )
         {
             for (Module* cFe : pBoard->fModuleVector)
@@ -149,6 +150,7 @@ void SCurve::measureSCurves ( int  pTGrpId )
                 cHitCounter += fillSCurves ( pBoard, ev, cValue, pTGrpId ); //pass test group here
                 cN++;
             }
+
 
             cNthAcq++;
             Counter cCounter;
